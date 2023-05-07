@@ -5,44 +5,80 @@ _start:
 #mazalReut
 
 
-section .text
+# decide direction
+    movl (num), %ecx
+    cmp $0, %ecx
+    jl Negative_Num_HW1
+    leaq (source), %rsi
+    leaq (destination), %rdi
+    jmp PrologLoop1_HW1
 
-; Copies <num> bytes starting at the source address to the destination address
-; If <num> is positive, it behaves like memmove
-; If <num> is negative, it copies |<num>| bytes to destination
-ex2:
-;  push rbp           Preserve the base pointer
-;  mov rbp, rsp      ; Set up the new base pointer
-
-  mov (num),eax    ; Load the value of num
-  cmp eax, 0        ; Compare num to zero
-  je end            ; If num is zero, return
-
-  mov (source), rsi ; Load the source address into rsi
-  mov (destination), rdi ; Load the destination address into rdi
-
-  cmp eax, 0        ; Check if num is positive or negative
-  jg forward        ; If num is positive, jump to forward
-  neg eax           ; If num is negative, negate it
-  sub rsi, rax      ; Adjust the source address
-  sub rdi, rax      ; Adjust the destination address
-  jmp forward       ; Jump to forward
-
-backward:
-  mov(rsi + rax - 1),al  ; Load the byte from the source address
-  mov al, (rdi + rax - 1)   ; Store the byte to the destination address
-  dec eax           ; Decrement the counter
-  jnz backward      ; If the counter is not zero, repeat
+Negative_Num_HW1:
+    not %ecx
+    inc %ecx
+    leaq (destination), %rsi
+    leaq (source), %rdi
 
 
-forward:
-  mov ecx, eax      ; Copy num into ecx
-  xor eax, eax      ; Clear eax
-  cld               ; Clear the direction flag
-  rep movsb         ; Move ecx bytes from rsi to rdi
+PrologLoop1_HW1:
+        movq $0, %rdx
+        movsx %ecx, %rax
+        cmp %rdi, %rsi
+        jge NoInverseNeeded_HW1
+        movq %rax, %r8
+        add %rsi, %r8
+        sub %rdi, %r8
+        cmp $0, %r8
+        jle NoInverseNeeded_HW1
+        movq %rsi, %r9
+        movq %rdi, %r10
+        add %rax, %r9
+        dec %r9
+        add %rax, %r10
+        dec %r10
+Inverse_First_HW1: 
+        movb (%r9), %bl
+        movb %bl, (%r10)
+        dec %rax
+        dec %r9
+        dec %r10
+        dec %r8
+        jz NoInverseNeeded_HW1
+        jmp Inverse_First_HW1
+        
+NoInverseNeeded_HW1:        
+        movq $8, %rbx
+        div %rbx        # now rax = num / 8, rdx = num % 8
+        
+        cmp $0, %rax
+        jz PrologLoopFinally_HW1
+        mov $0, %rcx
+Loop_HW1:
+        movq (%rsi), %rbx
+        movq %rbx, (%rdi)
+        add $8, %rsi
+        add $8, %rdi
 
-  jmp end           ; Jump to end
+        inc %rcx
+        cmp %rcx, %rax
+        je PrologLoopFinally_HW1
+        jmp Loop_HW1
 
-end:
-;  pop rbp           ; Restore the base pointer
-;  ret              ; Return from the function
+
+PrologLoopFinally_HW1:
+        cmp $0, %rdx
+        jz END_OF_EX2_HW1
+        mov $0, %rcx
+LoopFinally_HW1:
+        movb (%rsi), %bl
+        movb %bl, (%rdi)
+        inc %rsi
+        inc %rdi
+        
+        inc %rcx
+        cmp %rcx, %rdx
+        je END_OF_EX2_HW1
+        jmp LoopFinally_HW1
+
+
+END_OF_EX2_HW1:
