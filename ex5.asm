@@ -4,16 +4,16 @@
 _start:
 
 
-movq (src), %r10
-movq (dst), %r11
-cmp %r10, %r11
-je Finish_HW1
+	movq (src), %r10
+	movq (dst), %r11
+	cmp %r10, %r11
+	je Finish_HW1
 
 
-movq (head), %rcx
-movq $head, %rbp
-mov $0, %r8
-mov $0, %r9
+	movq (head), %rcx
+	movq $head, %rbp
+	mov $0, %r8
+	mov $0, %r9
 TraverseList_HW1:
     cmp $0, %rcx
     je AfterLoop_HW1
